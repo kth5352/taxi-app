@@ -15,6 +15,7 @@ function TaxiApp(): JSX.Element {
 
   return (
     <NavigationContainer>
+      <Text>asdasdasd</Text>
       <Stack.Screen
         name="Intro"
         component={Intro}
