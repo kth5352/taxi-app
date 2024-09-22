@@ -20,11 +20,11 @@ function Main_Map(): JSX.Element {
 
   const [showBtn, setShowBtn] = useState(false);
 
-  const handleLongPress = async (event: any) => {
+  const handleLongPress = async () => {
     setShowBtn(true);
   };
 
-  const headleAddMarker = async (event: any) => {
+  const hanleAddMarker = async (event: any) => {
     setShowBtn(false);
   };
 
@@ -81,12 +81,12 @@ function Main_Map(): JSX.Element {
             }}>
             <TouchableOpacity
               style={[styles.button, {flex: 1, marginVertical: 1}]}
-              onPress={() => headleAddMarker('출발지')}>
+              onPress={() => hanleAddMarker('출발지')}>
               <Text style={styles.buttonText}>출발지로 등록</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, {flex: 1}]}
-              onPress={() => headleAddMarker('출발지')}>
+              onPress={() => hanleAddMarker('출발지')}>
               <Text style={styles.buttonText}>도착지로 등록</Text>
             </TouchableOpacity>
           </View>
