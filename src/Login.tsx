@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Login(): JSX.Element {
   console.log('--Login()');
@@ -35,7 +36,9 @@ function Login(): JSX.Element {
   };
 
   const gotoMain = () => {
-    navigation.push('Main');
+    AsyncStorage.setItem('userId', userId).then(() => {
+      navigation.push('Main');
+    });
   };
 
   return (
