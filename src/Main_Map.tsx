@@ -1,12 +1,11 @@
-/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
+/* eslint-disable react-native/no-inline-styles */
 import {useState} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  TextInput,
   View,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -14,34 +13,64 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
+import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 
 function Main_Map(): JSX.Element {
   console.log('--Main_Map()');
 
   const [showBtn, setShowBtn] = useState(false);
+  const [markers, setMarkers] = useState([]);
+  const [initialRegion, setInitialRegion] = useState({
+    latitude: 37.5666612,
+    longitude: 126.9783785,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
+  });
 
-  const handleLongPress = async () => {
+  const handleLongPress = (event: any) => {
     setShowBtn(true);
+    // 선택한 위치의 좌표를 저장하거나 처리할 수 있습니다.
   };
 
-  const hanleAddMarker = async (event: any) => {
+  const handleAddMarker = (type: string) => {
+    // 현재 선택한 위치의 좌표를 가져와서 마커 추가
+    // 예시로 임의의 좌표를 사용합니다.
+    const coordinate = {
+      latitude: 37.5665,
+      longitude: 126.978,
+    };
+    setMarkers([...markers, {type, coordinate}]);
     setShowBtn(false);
+  };
+
+  const handleMyLocationPress = () => {
+    // 위치 권한 요청 및 현재 위치 가져오기 로직 구현
+  };
+
+  const query = {
+    key: 'API-KEY',
+    language: 'ko',
+    components: 'country:kr',
   };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* 지도 */}
-      <View style={[styles.container, {transform: [{scaleX: 1}, {scaleY: 2}]}]}>
-        <Icon
-          name="building"
-          size={300}
-          color={'#34db98'}
-          onPress={() => {
-            setShowBtn(false);
-          }}
-          onLongPress={handleLongPress}
-        />
-      </View>
+      <MapView
+        style={styles.container}
+        provider={PROVIDER_GOOGLE}
+        region={initialRegion}
+        onLongPress={handleLongPress}>
+        {/* 마커 렌더링 */}
+        {markers.map((marker, index) => (
+          <Marker
+            key={index}
+            coordinate={marker.coordinate}
+            title={marker.type}
+          />
+        ))}
+      </MapView>
 
       {/* 지도 위에 얹을 컴포넌트들 */}
       <View
@@ -49,23 +78,43 @@ function Main_Map(): JSX.Element {
           position: 'absolute',
           width: '100%',
           height: '100%',
-          padding: 10,
         }}>
         {/* 출발지 / 도착지 입력 박스, 호출버튼 */}
-        <View style={{flexDirection: 'row'}}>
-          <View style={{flex: 1}}>
-            <TextInput style={styles.input} placeholder={'출발지'} />
-            <TextInput style={styles.input} placeholder={'도착지'} />
-          </View>
-          <TouchableOpacity
-            style={[styles.button, {marginLeft: 10, justifyContent: 'center'}]}>
-            <Text style={styles.buttonText}>호출</Text>
-          </TouchableOpacity>
+        <View
+          style={{
+            position: 'absolute',
+            top: 10,
+            width: '100%',
+            paddingHorizontal: wp(2),
+          }}>
+          <GooglePlacesAutocomplete
+            minLength={2}
+            placeholder="출발지 검색"
+            query={query}
+            keyboardShouldPersistTaps={'handled'}
+            fetchDetails={true}
+            enablePoweredByContainer={false}
+            onFail={error => console.log(error)}
+            onNotFound={() => console.log('no results')}
+            styles={autocompleteStyles}
+          />
+          <GooglePlacesAutocomplete
+            minLength={2}
+            placeholder="도착지 검색"
+            query={query}
+            keyboardShouldPersistTaps={'handled'}
+            fetchDetails={true}
+            enablePoweredByContainer={false}
+            onFail={error => console.log(error)}
+            onNotFound={() => console.log('no results')}
+            styles={autocompleteStyles}
+          />
         </View>
 
-        {/* 내위치로 버튼 */}
+        {/* 내 위치로 버튼 */}
         <TouchableOpacity
-          style={[{position: 'absolute', bottom: 20, right: 20}]}>
+          style={{position: 'absolute', bottom: 20, right: 20}}
+          onPress={handleMyLocationPress}>
           <Icon name="crosshairs" size={40} color={'#3498db'} />
         </TouchableOpacity>
 
@@ -81,12 +130,12 @@ function Main_Map(): JSX.Element {
             }}>
             <TouchableOpacity
               style={[styles.button, {flex: 1, marginVertical: 1}]}
-              onPress={() => hanleAddMarker('출발지')}>
+              onPress={() => handleAddMarker('출발지')}>
               <Text style={styles.buttonText}>출발지로 등록</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, {flex: 1}]}
-              onPress={() => hanleAddMarker('출발지')}>
+              onPress={() => handleAddMarker('도착지')}>
               <Text style={styles.buttonText}>도착지로 등록</Text>
             </TouchableOpacity>
           </View>
@@ -96,12 +145,28 @@ function Main_Map(): JSX.Element {
   );
 }
 
+const autocompleteStyles = {
+  textInputContainer: {
+    width: '100%',
+    backgroundColor: '#e9e9e9',
+    borderRadius: 8,
+    height: 40,
+    marginBottom: 5,
+  },
+  textInput: {
+    height: 40,
+    color: '#5d5d5d',
+    fontSize: 16,
+  },
+  predefinedPlacesDescription: {
+    color: '#1faadb',
+    zIndex: 1,
+  },
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
   },
   button: {
     backgroundColor: '#3498db',
@@ -113,19 +178,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
-  },
-  input: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 2,
-    marginVertical: 1,
-    padding: 10,
-  },
-  buttonDisable: {
-    backgroundColor: 'gray',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
   },
 });
 

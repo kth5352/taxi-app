@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/react-in-jsx-scope */
 import {useState} from 'react';
@@ -8,8 +9,12 @@ import {
   TouchableOpacity,
   TextInput,
   View,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import {ParamListBase, useNavigation} from '@react-navigation/native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import api from './API'; // API 호출 파일
 
 function Register(): JSX.Element {
   console.log('--Register()');
@@ -18,12 +23,40 @@ function Register(): JSX.Element {
   const [userPw, setUserPw] = useState('');
   const [userPw2, setUserPw2] = useState('');
 
+  // 버튼 비활성화 여부 확인
   const isDisable = () => {
-    if (userId && userPw && userPw2 && userPw == userPw2) {
-      return false;
-    } else {
-      return true;
-    }
+    return !(userId && userPw && userPw2 && userPw === userPw2);
+  };
+
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+
+  const onRegister = () => {
+    console.log('회원가입 요청 시작'); // 로그 추가
+    api
+      .register(userId, userPw)
+      .then(response => {
+        console.log('회원가입 응답:', response.data); // 응답 로그 추가
+        const {code, message} = response.data;
+
+        let title = '알림';
+        if (code === 0) {
+          console.log('회원가입 성공');
+          navigation.pop(); // 성공 시 이전 화면으로 이동
+        } else {
+          title = '오류';
+        }
+
+        Alert.alert(title, message, [
+          {
+            text: '확인',
+            onPress: () => console.log('확인 눌림'),
+            style: 'cancel',
+          },
+        ]);
+      })
+      .catch(err => {
+        console.log('오류 발생: ' + JSON.stringify(err)); // 오류 처리 로그
+      });
   };
 
   return (
@@ -40,6 +73,7 @@ function Register(): JSX.Element {
         <TextInput
           style={styles.input}
           placeholder={'비밀번호'}
+          secureTextEntry={true}
           onChangeText={newPw => setUserPw(newPw)}
         />
         <TextInput
@@ -51,7 +85,11 @@ function Register(): JSX.Element {
       </View>
       <View style={[styles.container, {justifyContent: 'flex-start'}]}>
         <TouchableOpacity
-          disabled={isDisable()}
+          disabled={isDisable()} // 비활성화 여부 확인
+          onPress={() => {
+            console.log('회원가입 버튼 클릭');
+            onRegister(); // 회원가입 요청
+          }}
           style={isDisable() ? styles.buttonDisable : styles.button}>
           <Text style={styles.buttonText}>회원가입</Text>
         </TouchableOpacity>
@@ -61,14 +99,6 @@ function Register(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  textBlack: {
-    fontSize: 18,
-    color: 'black',
-  },
-  textBlue: {
-    fontSize: 18,
-    color: 'blue',
-  },
   container: {
     flex: 1,
     justifyContent: 'center',

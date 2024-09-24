@@ -8,10 +8,12 @@ import {
   TouchableOpacity,
   TextInput,
   View,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import {useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './API';
 
 function Login(): JSX.Element {
   console.log('--Login()');
@@ -41,6 +43,28 @@ function Login(): JSX.Element {
     });
   };
 
+  const onLogin = () => {
+    api
+      .login(userId, userPw)
+      .then(response => {
+        console.log('API response full: ', JSON.stringify(response));
+
+        const {code, message} = response.data; // 응답 데이터 확인
+        console.log('API login / code = ' + code + ', message = ' + message);
+
+        if (code === 0) {
+          // 로그인 성공
+          gotoMain();
+        } else {
+          Alert.alert('오류', message);
+        }
+      })
+      .catch(err => {
+        console.log('API 호출 중 오류 발생: ' + JSON.stringify(err));
+        Alert.alert('오류', '로그인 요청 중 문제가 발생했습니다.');
+      });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.container}>
@@ -63,7 +87,7 @@ function Login(): JSX.Element {
         <TouchableOpacity
           style={disable ? styles.buttonDisable : styles.button}
           disabled={disable}
-          onPress={gotoMain}>
+          onPress={onLogin}>
           <Text style={styles.buttonText}>로그인</Text>
         </TouchableOpacity>
         <TouchableOpacity

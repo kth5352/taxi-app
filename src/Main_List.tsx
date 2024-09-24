@@ -7,6 +7,7 @@ import {
   View,
   FlatList,
   Modal,
+  Alert,
 } from 'react-native';
 import {
   widthPercentageToDP as wp,
@@ -16,6 +17,8 @@ import {useState, useEffect} from 'react';
 import React from 'react';
 import {RefreshControl} from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './API';
 
 function Main_List(): JSX.Element {
   console.log('--Main_List()');
@@ -23,23 +26,24 @@ function Main_List(): JSX.Element {
   const [callList, setCallList] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const requestCallList = () => {
+  const requestCallList = async () => {
+    let userId = (await AsyncStorage.getItem('userId')) || '';
     setLoading(true);
-    setTimeout(() => {
-      let tmp: any = [];
-      for (let i = 0; i < 10; i++) {
-        let row = {
-          id: i.toString(), // id를 string으로 설정하여 FlatList의 keyExtractor와 일치시킴
-          start_addr: '출발주소 ' + i,
-          end_addr: '도착주소 ' + i,
-          call_state: 'REQ',
-        };
-        tmp.push(row);
+    api.list(userId).then(response => {
+      let {code, message, data} = response.data;
+      if (code === 0) {
+        setCallList(data);
+      } else {
+        Alert.alert('오류', message, [
+          {
+            text: '확인',
+            onPress: () => console.log('Cancel Pressed'),
+            style: 'cancel',
+          },
+        ]);
       }
-      console.log('callList:', tmp); // 데이터 구조를 확인하기 위한 로그 추가
-      setCallList(tmp);
       setLoading(false);
-    }, 200);
+    });
   };
 
   useEffect(() => {
