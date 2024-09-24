@@ -13,7 +13,7 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from 'react-native-responsive-screen';
-import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
+import MapView, {PROVIDER_GOOGLE, Marker, Polygon} from 'react-native-maps';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 
 function Main_Map(): JSX.Element {
@@ -48,8 +48,40 @@ function Main_Map(): JSX.Element {
     // 위치 권한 요청 및 현재 위치 가져오기 로직 구현
   };
 
+  const [marker1, setMarker1] = useState({latitude: 0, longitude: 0});
+  const [marker2, setMarker2] = useState({latitude: 0, longitude: 0});
+
+  const onSeleCtAddr = (data: any, details: any, type: string) => {
+    if (details) {
+      let lat = details.geometry.location.lat;
+      let lng = details.geometry.location.lng;
+
+      if (type === 'start') {
+        setMarker1({latitude: lat, longitude: lng});
+        if (marker2.longitude === 0) {
+          setInitialRegion({
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.0073,
+            longitudeDelta: 0.0064,
+          });
+        }
+      } else {
+        setMarker2({latitude: lat, longitude: lng});
+        if (marker1.longitude === 0) {
+          setInitialRegion({
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.0073,
+            longitudeDelta: 0.0064,
+          });
+        }
+      }
+    }
+  };
+
   const query = {
-    key: 'API-KEY',
+    key: 'APIKEY',
     language: 'ko',
     components: 'country:kr',
   };
